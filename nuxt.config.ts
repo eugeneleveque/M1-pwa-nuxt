@@ -4,18 +4,54 @@ import { defineNuxtConfig } from 'nuxt/config'
 export default defineNuxtConfig({
   modules: ['@vite-pwa/nuxt'],
   pages: true,
+
   runtimeConfig: {
     public: {
-      // chatServerUrl: process.env.NUXT_PUBLIC_CHAT_SERVER || "",
+      chatServerUrl: process.env.NUXT_PUBLIC_CHAT_SERVER || '',
+      chatSocketPath: process.env.NUXT_PUBLIC_CHAT_SOCKET_PATH || '/socket.io',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
     },
+  },
+
+  vite: {
+    server: {
+      proxy: {
+        // ✅ Proxy Socket.IO vers l'API distante (évite le CORS + corrige ERR_CONTENT_DECODING_FAILED)
+        "/socket.io": {
+          target: "https://api.tools.gavago.fr",
+          changeOrigin: true,
+          ws: true,
+          secure: true,
+
+          configure: (proxy) => {
+            proxy.on("proxyReq", (proxyReq) => {
+              // Empêche gzip/br côté upstream (source fréquente de ERR_CONTENT_DECODING_FAILED via proxy)
+              proxyReq.setHeader("accept-encoding", "identity");
+            });
+          },
+        },
+
+        // (optionnel) garde ton proxy local si tu en as encore besoin
+        "/ws/socket.io": {
+          target: "http://localhost:4001",
+          changeOrigin: true,
+          ws: true,
+        },
+      },
+    },
+  },
+
+
+  /* ✅ (Optionnel) Empêche Nuxt/SSR de tenter de router le chemin du socket */
+  routeRules: {
+    // ✅ désactive SSR pour le chemin proxifié Socket.IO
+    "/socket.io/**": { ssr: false },
+    "/ws/**": { ssr: false },
   },
 
   pwa: {
     registerType: 'autoUpdate',
-    devOptions: {
-      enabled: true,
-      suppressWarnings: true,
-    },
+    devOptions: { enabled: true, suppressWarnings: true },
     manifest: {
       name: 'Nuxt PWA',
       short_name: 'Nuxt PWA',
@@ -37,45 +73,30 @@ export default defineNuxtConfig({
       cleanupOutdatedCaches: true,
       runtimeCaching: [
         {
-          // navigations (pages HTML)
-          // typage explicite du paramètre pour éviter TS7031
           urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
-          // Remarque: pour une app Nuxt SSR, 'NetworkOnly' est souvent plus sûr.
-          handler: 'CacheFirst',
+          handler: 'CacheFirst', // ou 'NetworkOnly' si tu préfères laisser Nuxt servir les pages
           options: {
             cacheName: 'pages-cache',
-            expiration: {
-              maxEntries: 20,
-              maxAgeSeconds: 7 * 24 * 60 * 60,
-            },
+            expiration: { maxEntries: 20, maxAgeSeconds: 7 * 24 * 60 * 60 },
             cacheableResponse: { statuses: [0, 200] },
           },
         },
         {
-          // assets Nuxt (_nuxt)
-          urlPattern: /^\/_nuxt\//, // regex → pas de paramètre, pas d’avertissement TS
+          urlPattern: /^\/_nuxt\//,
           handler: 'CacheFirst',
           options: {
             cacheName: 'nuxt-assets',
-            expiration: {
-              maxEntries: 60,
-              maxAgeSeconds: 7 * 24 * 60 * 60,
-            },
+            expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 },
             cacheableResponse: { statuses: [0, 200] },
           },
         },
         {
-          // fichiers du dossier public (icônes, favicon...)
-          // on utilise 'sameOrigin' pour éviter d'accéder à 'self'
           urlPattern: ({ url, sameOrigin }: { url: URL; sameOrigin: boolean }) =>
             sameOrigin && url.pathname.startsWith('/icons/'),
           handler: 'CacheFirst',
           options: {
             cacheName: 'static-assets',
-            expiration: {
-              maxEntries: 30,
-              maxAgeSeconds: 30 * 24 * 60 * 60,
-            },
+            expiration: { maxEntries: 30, maxAgeSeconds: 30 * 24 * 60 * 60 },
             cacheableResponse: { statuses: [0, 200] },
           },
         },

@@ -8,7 +8,7 @@
       </p>
       <div class="ctaRow">
         <NuxtLink class="btn" to="/about">En savoir plus</NuxtLink>
-        <NuxtLink class="btn ghost" to="/login">Se connecter</NuxtLink>
+        <NuxtLink class="btn ghost" to="/profile">Se connecter</NuxtLink>
       </div>
     </section>
 
@@ -48,7 +48,7 @@
       <h2 class="cardTitle">Aller plus loin</h2>
       <ol class="steps">
         <li>Ouvre la page <code>/about</code> pour la documentation projet.</li>
-        <li>Teste la connexion sur <code>/login</code>, puis consulte ton profil sur <code>/profile</code>.</li>
+        <li>Teste la connexion sur <code>/profile</code>, puis consulte ton profil sur <code>/profile</code>.</li>
         <li>Construit en production : <code>npm run build</code> puis <code>npm run preview</code>.</li>
         <li>Active l’installation PWA depuis la barre d’URL (icône d’installation) ou via le menu navigateur.</li>
       </ol>
