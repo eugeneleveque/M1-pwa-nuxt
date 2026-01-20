@@ -1,5 +1,5 @@
 # ---------- Build stage ----------
-FROM node:22-slim AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -8,12 +8,15 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
+
 # ---------- Run stage ----------
-FROM node:22-slim AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
 
-RUN useradd -m nuxt
+# Utilisateur non-root
+RUN addgroup -S nuxt && adduser -S nuxt -G nuxt
 USER nuxt
 
 COPY --from=builder /app/.output ./.output

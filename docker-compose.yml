@@ -1,0 +1,9 @@
+services:
+  nuxt:
+    image: eugeneleveque/m1-pwa-nuxt:latest
+    container_name: m1-pwa-nuxt
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:3000"
