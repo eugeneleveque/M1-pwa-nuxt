@@ -1,6 +1,6 @@
 services:
   nuxt:
-    image: eugeneleveque/m1-pwa-nuxt:latest
+    image: euge36l/m1-pwa-nuxt:latest
     container_name: m1-pwa-nuxt
     restart: unless-stopped
     env_file:
