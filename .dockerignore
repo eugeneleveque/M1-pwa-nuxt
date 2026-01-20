@@ -9,3 +9,5 @@ README.md
 .env
 npm-debug.log
 yarn-error.log
+deploy_key
+deploy_key.pub
