@@ -51,7 +51,7 @@ export default defineNuxtConfig({
 
   pwa: {
     registerType: 'autoUpdate',
-    devOptions: { enabled: true, suppressWarnings: true },
+    devOptions: { enabled: false},
     manifest: {
       name: 'Nuxt PWA',
       short_name: 'Nuxt PWA',
