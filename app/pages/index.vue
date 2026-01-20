@@ -1,7 +1,7 @@
 <template>
   <main class="home">
     <section class="hero">
-      <h1 class="title">Projet PWA avec Nuxt + Vite</h1>
+      <h1 class="title">Projet Progressive Web App avec Nuxt + Vite</h1>
       <p class="subtitle">
         Cette application démontre la création d’une <strong>Progressive Web App (PWA)</strong>
         moderne avec <strong>Nuxt 4</strong> (rendu hybride/SSR) et <strong>Vite</strong> (bundler ultra rapide).
