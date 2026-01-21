@@ -51,15 +51,14 @@ jobs:
             set -euo pipefail
             cd /home/${{ secrets.VPS_USER }}/app
 
-            # DockerHub login (si image privée)
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Create .env from secret
             cat > .env <<'EOF'
             ${{ secrets.VPS_ENV }}
             EOF
             chmod 600 .env
 
-            docker compose up -d
+            docker compose pull
+            docker compose up -d --force-recreate
             docker image prune -f || true
             docker ps
