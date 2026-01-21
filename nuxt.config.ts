@@ -7,9 +7,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      chatServerUrl: process.env.NUXT_PUBLIC_CHAT_SERVER || '',
-      chatSocketPath: process.env.NUXT_PUBLIC_CHAT_SOCKET_PATH || '/socket.io',
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      chatServerUrl: '',
+      chatSocketPath: '/socket.io',
+      apiBase: '',
     },
   },
 
