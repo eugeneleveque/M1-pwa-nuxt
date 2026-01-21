@@ -11,6 +11,10 @@
         <NuxtLink class="btn ghost" to="/profile">Se connecter</NuxtLink>
       </div>
     </section>
+            <div>
+          <BatteryBadge />
+          <!-- le reste -->
+        </div>
 
     <section class="grid">
       <article class="card">

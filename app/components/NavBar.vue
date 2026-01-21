@@ -2,6 +2,10 @@
   <header class="site-header">
     <nav class="nav">
       <NuxtLink to="/" class="brand">Nuxt PWA</NuxtLink>
+          <div>
+            <BatteryBadge />
+            <!-- le reste -->
+          </div>
 
       <!-- zone droite (desktop) -->
       <div class="right">

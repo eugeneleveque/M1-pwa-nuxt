@@ -237,6 +237,7 @@ function formatTime(iso?: string) {
           <option v-for="r in roomOptions" :key="r" :value="r">#{{ r }}</option>
         </select>
       </label>
+        <ScrollToBottomButton />
 
       <button class="btn" :disabled="!hydrated || !selectedRoom" @click="applySelectedRoom">Rejoindre</button>
 
