@@ -1,4 +1,4 @@
-name: CI/CD DockerHub -> VPS
+name: Deploy PWA to VPS
 
 on:
   push:
@@ -10,32 +10,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_push:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Login Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build & Push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            euge36l/m1-pwa-nuxt:latest
-            euge36l/m1-pwa-nuxt:${{ github.sha }}
-
   deploy:
-    needs: build_and_push
     runs-on: ubuntu-latest
+
     steps:
-      - name: Deploy on VPS
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload project to VPS (rsync over SSH)
+        env:
+          VPS_IP: ${{ secrets.VPS_IP }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          REMOTE_PATH: /home/${{ secrets.VPS_USER }}/app
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$VPS_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan -H "$VPS_IP" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_IP" "mkdir -p '$REMOTE_PATH'"
+
+          rsync -az --delete \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" \
+            ./ "$VPS_USER@$VPS_IP:$REMOTE_PATH/"
+
+      - name: Deploy on VPS (docker compose)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_IP }}
@@ -43,18 +49,78 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -euo pipefail
-            cd /opt/nuxt-app
+            cd /home/${{ secrets.VPS_USER }}/app
 
+            # DockerHub login (si image privée)
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Optionnel : recréer .env depuis un secret
+            # Create .env from secret
             cat > .env <<'EOF'
             ${{ secrets.VPS_ENV }}
             EOF
             chmod 600 .env
 
-            docker compose pull
-            docker compose up -d --force-recreate
-            docker compose ps
-            docker compose logs --tail=60 || true
+            docker compose up -d
             docker image prune -f || true
+            docker ps
+
+# name: CI/CD DockerHub -> VPS
+
+# on:
+#   push:
+#     branches: ["main"]
+#   workflow_dispatch:
+
+# concurrency:
+#   group: deploy-main
+#   cancel-in-progress: true
+
+# jobs:
+#   build_and_push:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: docker/setup-buildx-action@v3
+
+#       - name: Login Docker Hub
+#         uses: docker/login-action@v3
+#         with:
+#           username: ${{ secrets.DOCKERHUB_USERNAME }}
+#           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+#       - name: Build & Push
+#         uses: docker/build-push-action@v6
+#         with:
+#           context: .
+#           push: true
+#           tags: |
+#             euge36l/m1-pwa-nuxt:latest
+#             euge36l/m1-pwa-nuxt:${{ github.sha }}
+
+#   deploy:
+#     needs: build_and_push
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Deploy on VPS
+#         uses: appleboy/ssh-action@v1.0.3
+#         with:
+#           host: ${{ secrets.VPS_IP }}
+#           username: ${{ secrets.VPS_USER }}
+#           key: ${{ secrets.VPS_SSH_KEY }}
+#           script: |
+#             set -euo pipefail
+#             cd /opt/nuxt-app
+
+#             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+#             # Optionnel : recréer .env depuis un secret
+#             cat > .env <<'EOF'
+#             ${{ secrets.VPS_ENV }}
+#             EOF
+#             chmod 600 .env
+
+#             docker compose pull
+#             docker compose up -d --force-recreate
+#             docker compose ps
+#             docker compose logs --tail=60 || true
+#             docker image prune -f || true
