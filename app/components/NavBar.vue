@@ -6,7 +6,7 @@
             <BatteryBadge />
             <!-- le reste -->
           </div>
-
+          
       <!-- zone droite (desktop) -->
       <div class="right">
         <ul class="desktop-links">

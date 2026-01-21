@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { useBrowserNotifications } from "@/composables/useBrowserNotifications";
+
+const { permission, enabled, requestPermission, notify } = useBrowserNotifications();
+
+async function enableNotifs() {
+  await requestPermission();
+}
+
+async function testNotif() {
+  await notify({
+    title: "✅ Test notification",
+    body: "Si tu vois ça, les notifications système fonctionnent.",
+    tag: "test-notif",
+  });
+}
+</script>
+
 <template>
   <main class="home">
     <section class="hero">
@@ -15,6 +33,27 @@
           <BatteryBadge />
           <!-- le reste -->
         </div>
+
+    <section style="margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <!-- Bouton d'autorisation -->
+      <button v-if="permission !== 'granted'" @click="enableNotifs">
+        Activer les notifications
+      </button>
+
+      <template v-else>
+        <span>
+          Notifications : <b>{{ enabled ? "activées" : "désactivées" }}</b>
+        </span>
+
+        <button @click="testNotif">
+          Tester une notification
+        </button>
+      </template>
+    </section>
+
+    <p style="margin-top: 12px; opacity: 0.8;">
+      Astuce : les notifications apparaissent surtout quand l’onglet n’est pas au premier plan.
+    </p>
 
     <section class="grid">
       <article class="card">
@@ -60,9 +99,6 @@
   </main>
 </template>
 
-<script setup lang="ts">
-// Pas de logique spécifique pour la page d’accueil
-</script>
 
 <style scoped>
 .home {
