@@ -99,7 +99,6 @@ async function testNotif() {
   </main>
 </template>
 
-
 <style scoped>
 .home {
   max-width: 64rem;     /* ~ 1024px */
